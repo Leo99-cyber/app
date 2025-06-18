@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Platform Admin Dashboard</title>
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    ul {
+      list-style: none;
+    }
+
+    /* ===== VARIABLES ===== */
+    :root {
+      --sidebar-width: 240px;
+      --sidebar-bg: #ffffff;
+      --sidebar-border: #e5e7eb;
+      --main-bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(0,0,0,0.05);
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --primary: #2563eb;
+      --primary-light: #e0f2fe;
+      --green: #10b981;
+      --green-light: #d1fae5;
+      --orange: #f97316;
+      --orange-light: #ffedd5;
+      --red: #ef4444;
+      --purple: #8b5cf6;
+      --purple-light: #f3e8ff;
+      --icon-color: #2563eb; /* unified icon color */
+      --badge-radius: 12px;
+      --radius: 8px;
+      --transition: 0.3s ease;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      padding: 20px 0;
+      transition: transform var(--transition);
+      z-index: 1000;
+    }
+    .sidebar.hidden {
+      transform: translateX(-100%);
+    }
+    .sidebar .logo {
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      margin-bottom: 30px;
+    }
+    .sidebar .logo i {
+      font-size: 24px;
+      margin-right: 8px;
+      color: var(--icon-color);
+    }
+    .sidebar .logo span {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+    .sidebar nav ul li {
+      margin-bottom: 16px;
+    }
+    .sidebar nav ul li a {
+      display: flex;
+      align-items: center;
+      padding: 8px 20px;
+      color: var(--text-dark);
+      font-size: 15px;
+      transition: background var(--transition);
+    }
+    .sidebar nav ul li a:hover {
+      background: var(--primary-light);
+    }
+    .sidebar nav ul li a i {
+      width: 20px;
+      font-size: 16px;
+      color: var(--icon-color);
+      margin-right: 12px;
+    }
+
+    /* ===== MAIN WRAPPER ===== */
+    .main-wrapper {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      transition: margin-left var(--transition);
+    }
+    .main-wrapper.fullwidth {
+      margin-left: 0;
+    }
+
+    /* ===== TOPBAR ===== */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--sidebar-border);
+      padding: 0 20px;
+      height: 56px;
+    }
+    .topbar .left {
+      display: flex;
+      align-items: center;
+    }
+    .topbar .menu-toggle {
+      font-size: 20px;
+      color: var(--icon-color);
+      margin-right: 16px;
+      display: none; /* shown on mobile */
+    }
+    .topbar .search-box {
+      position: relative;
+    }
+    .topbar .search-box input {
+      padding: 6px 32px 6px 12px;
+      border: 1px solid var(--sidebar-border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      width: 200px;
+      transition: width 0.3s ease;
+    }
+    .topbar .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      width: 250px;
+    }
+    .topbar .search-box i {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      font-size: 14px;
+    }
+    .topbar .right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .topbar .icon-btn {
+      position: relative;
+      font-size: 18px;
+      color: var(--icon-color);
+    }
+    .topbar .icon-btn .badge {
+      position: absolute;
+      top: -4px; right: -6px;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: var(--badge-radius);
+    }
+    .topbar .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--primary);
+    }
+    .topbar .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ===== CONTENT ===== */
+    .content {
+      padding: 20px;
+      background: var(--main-bg);
+      flex: 1;
+      overflow-y: auto;
+    }
+    .content h1.page-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: var(--text-dark);
+    }
+
+    /* ===== METRIC CARDS ===== */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 5px var(--card-shadow);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .metric-card .info {
+      display: flex;
+      flex-direction: column;
+    }
+    .metric-card .info .label {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    .metric-card .info .value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+    .metric-card .info .change {
+      font-size: 12px;
+      margin-top: 4px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .metric-card .info .change.down {
+      color: var(--red);
+    }
+    .metric-card .icon-wrap {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-light);
+      flex-shrink: 0;
+    }
+    /* Different background for each card icon if desired */
+    .metric-card.users .icon-wrap { background: var(--primary-light); }
+    .metric-card.companies .icon-wrap { background: #d1fae5; } /* green-light */
+    .metric-card.jobs .icon-wrap { background: #ffedd5; } /* orange-light */
+    .metric-card.revenue .icon-wrap { background: #f3e8ff; } /* purple-light */
+    .metric-card .icon-wrap i {
+      font-size: 18px;
+      color: var(--icon-color);
+    }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .quick-actions button {
+      flex: 1 1 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: bold;
+      color: #fff;
+      transition: background var(--transition);
+    }
+    .quick-actions .btn-approve { background: var(--primary); }
+    .quick-actions .btn-review  { background: var(--orange); }
+    .quick-actions .btn-report  { background: var(--green); }
+    .quick-actions .btn-announce{ background: var(--purple); }
+    .quick-actions button i {
+      font-size: 14px;
+      color: #fff;
+    }
+    .quick-actions button .badge {
+      background: rgba(0,0,0,0.1);
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+    }
+    .quick-actions .btn-approve:hover { background: #1e4db7; }
+    .quick-actions .btn-review:hover  { background: #d65a0e; }
+    .quick-actions .btn-report:hover  { background: #0e8f56; }
+    .quick-actions .btn-announce:hover{ background: #6b21a8; }
+
+    /* ===== RECENT ACTIVITY & SYSTEM HEALTH ===== */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .panel {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 5px var(--card-shadow);
+      padding: 16px;
+    }
+    .panel h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--text-dark);
+    }
+    /* Recent activity list */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .activity-item .icon-wrap {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-light);
+    }
+    .activity-item .icon-wrap.job { background: #d1fae5; } /* green-light */
+    .activity-item .icon-wrap.post { background: #d1fae5; }
+    .activity-item .icon-wrap.company { background: var(--primary-light); }
+    .activity-item .icon-wrap.flag { background: #fee2e2; } /* red-light-ish */
+    .activity-item .icon-wrap i {
+      font-size: 16px;
+      color: var(--icon-color);
+    }
+    .activity-item .details {
+      flex: 1;
+    }
+    .activity-item .details .title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+    .activity-item .details .subtitle {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+    .activity-item .time-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .activity-item .time-status .time {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .activity-item .time-status .badge {
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+      color: #fff;
+    }
+    .activity-item .time-status .badge.Pending { background: var(--primary); }
+    .activity-item .time-status .badge.Active  { background: var(--green); }
+    .activity-item .time-status .badge.Review  { background: var(--orange); }
+
+    /* System Health list */
+    .health-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .health-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .health-item .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-dark);
+    }
+    .health-item .label .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .health-item .value {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    .dot.green   { background: var(--green); }
+    .dot.orange  { background: var(--orange); }
+    .dot.gray    { background: var(--text-light); }
+    .dot.red     { background: var(--red); }
+
+    /* ===== PENDING APPROVALS TABLE ===== */
+    .pending-panel {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 5px var(--card-shadow);
+      padding: 16px;
+    }
+    .pending-panel h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--text-dark);
+    }
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th, table td {
+      padding: 10px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--sidebar-border);
+      white-space: nowrap;
+      font-size: 14px;
+      color: var(--text-dark);
+    }
+    table thead th {
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+    table tbody tr:hover {
+      background: #f9fafb;
+    }
+    .type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--badge-radius);
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .type-badge.Company { background: var(--primary); }
+    .type-badge.Job     { background: var(--orange); }
+    .action-links {
+      display: flex;
+      gap: 8px;
+    }
+    .action-links .approve-link {
+      color: var(--green);
+      font-size: 14px;
+    }
+    .action-links .reject-link {
+      color: var(--red);
+      font-size: 14px;
+    }
+    /* smaller font on very small screens */
+    @media (max-width: 480px) {
+      table th, table td {
+        padding: 8px 6px;
+        font-size: 12px;
+      }
+      .topbar .search-box input {
+        width: 120px;
+      }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .metrics {
+        gap: 12px;
+      }
+      .metric-card {
+        padding: 12px;
+      }
+      .quick-actions {
+        gap: 8px;
+      }
+    }
+    @media (max-width: 768px) {
+      /* sidebar off-canvas */
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+      .main-wrapper {
+        margin-left: 0;
+      }
+      .topbar .menu-toggle {
+        display: block;
+      }
+      .topbar .search-box input {
+        width: 140px;
+      }
+      .panels {
+        grid-template-columns: 1fr;
+      }
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+      .quick-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <i class="fa fa-box"></i>
+      <span>Platform Admin</span>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#"><i class="fa fa-chart-line"></i><span>Dashboard</span></a></li>
+        <li><a href="#"><i class="fa fa-users"></i><span>User Management</span></a></li>
+        <li><a href="#"><i class="fa fa-building"></i><span>Company Management</span></a></li>
+        <li><a href="#"><i class="fa fa-briefcase"></i><span>Job Postings</span></a></li>
+        <li><a href="#"><i class="fa fa-chart-pie"></i><span>Analytics & Reports</span></a></li>
+        <li><a href="#"><i class="fa fa-dollar-sign"></i><span>Financial Management</span></a></li>
+        <li><a href="#"><i class="fa fa-flag"></i><span>Content Moderation</span></a></li>
+        <li><a href="#"><i class="fa fa-cog"></i><span>System Settings</span></a></li>
+        <li><a href="#"><i class="fa fa-life-ring"></i><span>Support Tickets</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="left">
+        <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
+        <div class="search-box">
+          <input type="text" placeholder="Quick search..." />
+          <i class="fa fa-search"></i>
+        </div>
+      </div>
+      <div class="right">
+        <button class="icon-btn" title="Notifications">
+          <i class="fa fa-bell"></i>
+          <span class="badge">3</span>
+        </button>
+        <div class="avatar" title="Profile">
+          <!-- Placeholder avatar; replace src with actual user image -->
+          <img src="https://via.placeholder.com/32" alt="User Avatar"/>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="content">
+      <h1 class="page-title">Platform Administration Dashboard</h1>
+
+      <!-- METRIC CARDS -->
+      <section class="metrics">
+        <div class="metric-card users">
+          <div class="info">
+            <div class="label">Total Users</div>
+            <div class="value">12,450</div>
+            <div class="change"><i class="fa fa-arrow-up"></i> 12.5%</div>
+          </div>
+          <div class="icon-wrap"><i class="fa fa-users"></i></div>
+        </div>
+        <div class="metric-card companies">
+          <div class="info">
+            <div class="label">Active Companies</div>
+            <div class="value">1,089</div>
+            <div class="change"><i class="fa fa-arrow-up"></i> 8.2%</div>
+          </div>
+          <div class="icon-wrap"><i class="fa fa-building"></i></div>
+        </div>
+        <div class="metric-card jobs">
+          <div class="info">
+            <div class="label">Job Postings</div>
+            <div class="value">3,267</div>
+            <div class="change"><i class="fa fa-arrow-up"></i> 15.7%</div>
+          </div>
+          <div class="icon-wrap"><i class="fa fa-briefcase"></i></div>
+        </div>
+        <div class="metric-card revenue">
+          <div class="info">
+            <div class="label">Platform Revenue</div>
+            <div class="value">$45,680</div>
+            <div class="change"><i class="fa fa-arrow-up"></i> 22.1%</div>
+          </div>
+          <div class="icon-wrap"><i class="fa fa-dollar-sign"></i></div>
+        </div>
+      </section>
+
+      <!-- QUICK ACTIONS -->
+      <section class="quick-actions">
+        <button class="btn-approve">
+          <i class="fa fa-check-circle"></i> Approve Pending Jobs
+          <span class="badge">12</span>
+        </button>
+        <button class="btn-review">
+          <i class="fa fa-flag"></i> Review Flagged Content
+          <span class="badge">5</span>
+        </button>
+        <button class="btn-report">
+          <i class="fa fa-chart-line"></i> Generate Reports
+        </button>
+        <button class="btn-announce">
+          <i class="fa fa-bullhorn"></i> Send Announcement
+        </button>
+      </section>
+
+      <!-- RECENT ACTIVITY & SYSTEM HEALTH PANELS -->
+      <section class="panels">
+        <!-- Recent Activity -->
+        <div class="panel">
+          <h3>Recent Platform Activity</h3>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="icon-wrap company">
+                <i class="fa fa-building"></i>
+              </div>
+              <div class="details">
+                <div class="title">New Company Registration</div>
+                <div class="subtitle">TechStart Inc. submitted verification</div>
+              </div>
+              <div class="time-status">
+                <div class="time">2 hours ago</div>
+                <div class="badge Pending">Pending</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="icon-wrap post">
+                <i class="fa fa-briefcase"></i>
+              </div>
+              <div class="details">
+                <div class="title">Job Posted</div>
+                <div class="subtitle">Senior Developer at Microsoft</div>
+              </div>
+              <div class="time-status">
+                <div class="time">4 hours ago</div>
+                <div class="badge Active">Active</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="icon-wrap flag">
+                <i class="fa fa-flag"></i>
+              </div>
+              <div class="details">
+                <div class="title">Content Flagged</div>
+                <div class="subtitle">Inappropriate job description reported</div>
+              </div>
+              <div class="time-status">
+                <div class="time">6 hours ago</div>
+                <div class="badge Review">Review</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- System Health -->
+        <div class="panel">
+          <h3>System Health</h3>
+          <div class="health-list">
+            <div class="health-item">
+              <div class="label"><span class="dot green"></span> Server Status</div>
+              <div class="value">Operational</div>
+            </div>
+            <div class="health-item">
+              <div class="label"><span class="dot green"></span> Database</div>
+              <div class="value">99.9% uptime</div>
+            </div>
+            <div class="health-item">
+              <div class="label"><span class="dot orange"></span> API Response</div>
+              <div class="value">245ms avg</div>
+            </div>
+            <div class="health-item">
+              <div class="label"><span class="dot green"></span> Error Rate</div>
+              <div class="value">0.02%</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PENDING APPROVALS TABLE -->
+      <section class="pending-panel">
+        <h3>Pending Approvals</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>TYPE</th><th>ITEM</th><th>SUBMITTED BY</th><th>DATE</th><th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="type-badge Company">Company</span></td>
+                <td>TechStart Inc.</td>
+                <td>John Smith</td>
+                <td>2 hours ago</td>
+                <td>
+                  <div class="action-links">
+                    <a href="#" class="approve-link">Approve</a>
+                    <a href="#" class="reject-link">Reject</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="type-badge Job">Job</span></td>
+                <td>Senior React Developer</td>
+                <td>Google Inc.</td>
+                <td>4 hours ago</td>
+                <td>
+                  <div class="action-links">
+                    <a href="#" class="approve-link">Approve</a>
+                    <a href="#" class="reject-link">Reject</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===== JS FOR SIDEBAR TOGGLE ===== -->
+  <script>
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mainWrapper = document.getElementById('mainWrapper');
+      const menuToggle = document.getElementById('menuToggle');
+
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('visible');
+      });
+
+      // Click outside to close sidebar on mobile
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+          if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+            sidebar.classList.remove('visible');
+          }
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+          sidebar.classList.remove('visible');
+          mainWrapper.classList.remove('fullwidth');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
